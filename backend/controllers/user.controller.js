@@ -69,23 +69,34 @@ export const followUnfollowUser = async (req, res) => {
     }
 }
 
+// Controller function to get suggested users
 export const getSuggestedUsers = async (req, res) => {
     try {
-        const userId = req.user._id;
+        const userId = req.user._id; // Retrieve the ID of the current logged-in user
+
+        // Find the list of users that the current user is following
         const usersFollowedByMe = await User.findById(userId).select("following");
 
+        // Aggregate query to find random users excluding the current user
         const users = await User.aggregate([
             {
                 $match: {
-                    _id: { $ne: userId }
+                    _id: { $ne: userId } // Exclude the current user from the results ne=not equal
                 },
             },
-            { $sample: { size: 10 } },
+            { $sample: { size: 10 } }, // Randomly select 10 users
         ]);
 
+        // Filter out users that the current user is already following
         const filteredUsers = users.filter((user) => !usersFollowedByMe.following.includes(user._id));
+
+        // Select the top 4 users from the filtered list
         const suggestedUsers = filteredUsers.slice(0, 4);
+
+        // Remove the password field from the suggested users
         suggestedUsers.map(user => user.password = null);
+
+        // Return the suggested users as a JSON response
         res.status(200).json(suggestedUsers);
     } catch (error) {
         console.error("Error in getSuggestedUsers controller: ", error);
@@ -93,44 +104,56 @@ export const getSuggestedUsers = async (req, res) => {
     }
 }
 
+// Controller function to update the user's profile
 export const updateUser = async (req, res) => {
-    const userId = req.user._id;
+    const userId = req.user._id; // Retrieve the ID of the current logged-in user
     const { fullName, username, email, currentPassword, newPassword, bio, link } = req.body;
     let { profileImg, coverImg } = req.body;
-    try {
-        const user = await User.findById(userId);
-        if (!user) return res.status(404).json({ error: "User not found" });
 
+    try {
+        // Find the user by their ID
+        const user = await User.findById(userId);
+
+        // If the user is not found, return a 404 error response
+        if (!user) return res.status(404).json({ error: "User not found" }); 
+
+        // Ensure both current and new passwords are provided if password change is requested
         if ((!currentPassword && newPassword) || (!newPassword && currentPassword)) {
-            return res.status(400).json({ error: "Please provide current password and new password" })
+            return res.status(400).json({ error: "Please provide both current password and new password" });
         }
 
+        // Check if current password matches before setting the new password
         if (currentPassword && newPassword) {
-            const isMatch = user.comparePassword(currentPassword);
-            if (!isMatch) return res.status(400).hson({ error: "Current password is incorrect" });
+            const isMatch = await user.comparePassword(currentPassword); // Compare the current password
+            if (!isMatch) return res.status(400).json({ error: "Current password is incorrect" }); // If the current password is incorrect, return a 400 error response
             if (newPassword.length < 6) {
-                return res.status(400).json({ error: "Password must be at least 6 characters long" });
+                return res.status(400).json({ error: "Password must be at least 6 characters long" }); // If the new password is too short, return a 400 error response
             }
         }
 
+        // If a new profile image is provided, delete the old one and upload the new one
         if (profileImg) {
             if (user.profileImg) {
-                await cloudinary.uploader.destroy(user.profileImg.split("/").pop().split(".")[0]);
+                // Delete the old profile image from Cloudinary
+                await cloudinary.uploader.destroy(user.profileImg.split("/").pop().split(".")[0]); 
             }
-
-            const uploadedResponse = await cloudinary.uploader.upload(profileImg);
-            profileImg = uploadedResponse.secure_url
+            // Upload the new profile image
+            const uploadedResponse = await cloudinary.uploader.upload(profileImg); 
+            profileImg = uploadedResponse.secure_url; // Get the URL of the new profile image
         }
 
+        // If a new cover image is provided, delete the old one and upload the new one
         if (coverImg) {
             if (user.coverImg) {
-                await cloudinary.uploader.destroy(user.coverImg.split("/").pop().split(".")[0]);
+                // Delete the old cover image from Cloudinary
+                await cloudinary.uploader.destroy(user.coverImg.split("/").pop().split(".")[0]); 
             }
-
-            const uploadedResponse = await cloudinary.uploader.upload(coverImg);
-            coverImg = uploadedResponse.secure_url;
+            // Upload the new cover image
+            const uploadedResponse = await cloudinary.uploader.upload(coverImg); 
+            coverImg = uploadedResponse.secure_url; // Get the URL of the new cover image
         }
 
+        // Update user fields with the new data, or keep existing data if not provided
         user.fullName = fullName || user.fullName;
         user.email = email || user.email;
         user.username = username || user.username;
@@ -139,15 +162,19 @@ export const updateUser = async (req, res) => {
         user.profileImg = profileImg || user.profileImg;
         user.coverImg = coverImg || user.coverImg;
 
+        // Update the password only if a new password is provided
         if (newPassword) {
             user.password = newPassword;
         }
-        let updatedUser = await user.save();
-        updatedUser.password = null;
 
+        // Save the updated user document to the database
+        let updatedUser = await user.save();
+        updatedUser.password = null; // Ensure the password is not included in the response
+
+        // Return the updated user data as a JSON response
         return res.status(200).json(updatedUser);
     } catch (error) {
         console.error("Error in updateUserProfile controller: ", error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({ error: "Internal server error" }); // If an error occurs, return a 500 error response
     }
 }
