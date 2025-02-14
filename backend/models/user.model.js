@@ -71,7 +71,7 @@ userSchema.methods.getJWTToken = function () {
     });
 };
 
-
+// Method to compare a provided password with the hashed password stored in the database
 userSchema.methods.comparePassword = async function (password) {
     return await bcrypt.compare(password, this.password || "");
 }
