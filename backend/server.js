@@ -2,8 +2,10 @@ import express from "express"; // Importing the Express library to create a web 
 import dotenv from "dotenv"; // Importing the dotenv library to load environment variables from a .env file
 import cookieParser from "cookie-parser";
 
-import authRoutes from "./routes/auth.routes.js"; // Importing the authentication routes
 import connectMongoDB from "./db/connectMongoDB.js"; // Importing the function to connect to MongoDB
+
+import authRoutes from "./routes/auth.routes.js"; // Importing the authentication routes
+import userRoutes from "./routes/user.routes.js"; // Importing the user routes
 
 
 dotenv.config(); // Loading environment variables from the .env file
@@ -17,6 +19,7 @@ app.use(express.urlencoded({ extended: true })); // Middleware to parse incoming
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes); // Setting up the authentication routes with the base URL "/api/auth"
+app.use("/api/users", userRoutes);
 
 // Starting the server and listening on the defined port
 app.listen(PORT, () => {
