@@ -1,8 +1,10 @@
 import express from "express"; // Importing the Express library to create a web server
 import dotenv from "dotenv"; // Importing the dotenv library to load environment variables from a .env file
+import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/auth.routes.js"; // Importing the authentication routes
 import connectMongoDB from "./db/connectMongoDB.js"; // Importing the function to connect to MongoDB
+
 
 dotenv.config(); // Loading environment variables from the .env file
 
@@ -11,6 +13,8 @@ const PORT = process.env.PORT || 5000; // Defining the port number to listen on,
 
 app.use(express.json()); // Middleware to parse incoming JSON requests
 app.use(express.urlencoded({ extended: true })); // Middleware to parse incoming URL-encoded requests
+
+app.use(cookieParser());
 
 app.use("/api/auth", authRoutes); // Setting up the authentication routes with the base URL "/api/auth"
 
