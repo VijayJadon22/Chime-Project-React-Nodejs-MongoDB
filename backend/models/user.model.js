@@ -1,4 +1,6 @@
 import mongoose from "mongoose"; // Importing the mongoose library to interact with MongoDB
+import bcrypt from "bcryptjs"; // Importing the bcryptjs library to hash passwords
+import jwt from "jsonwebtoken"; // Importing the jsonwebtoken library to generate JWT tokens
 
 // Defining the schema for the user collection
 const userSchema = new mongoose.Schema({
@@ -53,7 +55,24 @@ const userSchema = new mongoose.Schema({
     }
 }, { timestamps: true }); // The timestamps option adds createdAt and updatedAt fields to the schema
 
+// Pre-save hook to hash the password before saving the user document
+userSchema.pre("save", async function (next) {
+    if (this.isModified("password") || this.isNew) { // Check if the password is modified or if the document is new
+        const salt = await bcrypt.genSalt(10); // Generate a salt with 10 rounds
+        this.password = await bcrypt.hash(this.password, salt); // Hash the password using the salt
+    }
+    next(); // Call the next middleware
+});
+
+// Method to generate a JWT token for the user
+userSchema.methods.getJWTToken = function () {
+    return jwt.sign({ userId: this._id }, process.env.JWT_Secret, { // Generate a JWT token with the user ID as payload
+        expiresIn: "15d" // The token expires in 15 days
+    });
+};
+
 // Creating the User model from the schema
 const User = mongoose.model("User", userSchema);
+
 // Exporting the User model to be used in other parts of the application
 export default User;

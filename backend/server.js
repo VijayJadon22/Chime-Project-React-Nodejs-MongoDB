@@ -10,6 +10,7 @@ const app = express(); // Creating an instance of the Express application
 const PORT = process.env.PORT || 5000; // Defining the port number to listen on, using the value from the environment variable or 5000 as default
 
 app.use(express.json()); // Middleware to parse incoming JSON requests
+app.use(express.urlencoded({ extended: true })); // Middleware to parse incoming URL-encoded requests
 
 app.use("/api/auth", authRoutes); // Setting up the authentication routes with the base URL "/api/auth"
 
