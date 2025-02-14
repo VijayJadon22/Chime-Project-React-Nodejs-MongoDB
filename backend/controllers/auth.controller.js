@@ -58,17 +58,41 @@ export const signup = async (req, res) => {
         }
     } catch (error) {
         console.error("Error in signup controller: ", error);
+        return res.status(500).json({ error: "Internal server error" });
     }
 }
 
 export const login = async (req, res) => {
-    return res.json({
-        data: "You hit the login endpoint"
-    })
+    try {
+        const { username, password } = req.body;
+        const user = await User.findOne({ username });
+
+        if (!user) {
+            return res.status(400).json({ error: "Invalid username" });
+        }
+
+        const isPasswordMatch = await user.comparePassword(password);
+        if (!isPasswordMatch) {
+            return res.status(400).json({ error: "Invalid password" });
+        }
+        generateTokenAndSetCookie(user, res);
+        res.status(200).json({
+            _id: user._id,
+            username: user.username,
+            fullName: user.fullName,
+            email: user.email,
+            profileImg: user.profileImg,
+            coverImg: user.coverImg,
+            followers: user.followers,
+            following: user.following
+        })
+
+    } catch (error) {
+        console.error("Error in login controller: ", error.message);
+        return res.status(500).json({ error: "Internal server error" });
+    }
 }
 
 export const logout = async (req, res) => {
-    return res.json({
-        data: "You hit the logout endpoint"
-    })
+    
 }
