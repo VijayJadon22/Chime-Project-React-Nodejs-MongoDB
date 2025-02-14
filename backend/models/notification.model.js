@@ -1,27 +1,30 @@
-import mongoose from "mongoose";
+import mongoose from "mongoose"; // Import the mongoose module
 
+// Define the notification schema
 const notificationSchema = new mongoose.Schema({
-    from: {
+    from: { // The user who initiated the notification
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
+        ref: "User", // Reference to the User model
+        required: true, // This field is required
     },
-    to: {
+    to: { // The user who receives the notification
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
+        ref: "User", // Reference to the User model
+        required: true, // This field is required
     },
-    type: {
+    type: { // The type of notification
         type: String,
-        required: true,
-        enum: ["follow", "like"]
+        required: true, // This field is required
+        enum: ["follow", "like"] // Possible values: "follow" or "like"
     },
-    read: {
+    read: { // Indicates whether the notification has been read
         type: Boolean,
-        default: false
+        default: false // Default value is false
     }
 
-}, { timestamps: true });
+}, { timestamps: true }); // Add createdAt and updatedAt fields
 
+// Create the Notification model from the schema
 const Notification = mongoose.model("Notification", notificationSchema);
-export default Notification;
+
+export default Notification; // Export the Notification model

@@ -7,6 +7,7 @@ import connectMongoDB from "./db/connectMongoDB.js"; // Importing the function t
 
 import authRoutes from "./routes/auth.routes.js"; // Importing the authentication routes
 import userRoutes from "./routes/user.routes.js"; // Importing the user routes
+import postRoutes from "./routes/post.routes.js"; // Importing the post routes
 
 
 dotenv.config(); // Loading environment variables from the .env file
@@ -27,7 +28,8 @@ app.use(express.urlencoded({ extended: true })); // Middleware to parse incoming
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes); // Setting up the authentication routes with the base URL "/api/auth"
-app.use("/api/users", userRoutes);
+app.use("/api/users", userRoutes); // Setting up the user routes with the base URL "/api/users"
+app.use("/api/posts", postRoutes); // Setting up the post routes with the base URL "/api/posts"
 
 // Starting the server and listening on the defined port
 app.listen(PORT, () => {
