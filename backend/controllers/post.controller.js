@@ -280,8 +280,6 @@ export const getUserPosts = async (req, res) => {
     } catch (error) {
         // Log the error to the console for debugging
         console.error("Error in getUserPosts controller: ", error);
-
-        // Return a 500 internal server error response
         return res.status(500).json({ error: "Internal server error" });
     }
 };

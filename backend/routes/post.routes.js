@@ -1,7 +1,9 @@
 // Import necessary modules and controllers
 import express from "express";
 import { protectRoute } from "../middlewares/protectRoute.js";
-import { createPost, deletePost, commentOnPost, likeUnlikePost, getAllPosts, getLikedPosts, getFollowingPosts, getUserPosts } from "../controllers/post.controller.js";
+import {
+    createPost, deletePost, commentOnPost, likeUnlikePost, getAllPosts, getLikedPosts, getFollowingPosts, getUserPosts
+} from "../controllers/post.controller.js";
 
 // Create a new Express router instance
 const router = express.Router();
