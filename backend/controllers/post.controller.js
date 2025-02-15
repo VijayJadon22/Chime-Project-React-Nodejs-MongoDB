@@ -88,59 +88,102 @@ export const deletePost = async (req, res) => {
     }
 }
 
+// Controller function to handle commenting on a post
 export const commentOnPost = async (req, res) => {
     try {
-        const postId = req.params.id; //postId
-        const { text } = req.body;
-        const userId = req.user._id;
+        const postId = req.params.id; // Extracting the post ID from the request parameters
+        const { text } = req.body; // Extracting the comment text from the request body
+        const userId = req.user._id; // Extracting the user ID from the authenticated user
 
+        // Validate if the comment text is provided
         if (!text) return res.status(400).json({ error: "Text is required" });
+        // Validate if the post ID is provided
         if (!postId) return res.status(400).json({ error: "Post ID is required" });
 
+        // Find the post by its ID
         const post = await Post.findById(postId);
+        // If the post is not found, return a 404 error
         if (!post) return res.status(404).json({ error: "Post not found" });
 
+        // Create a new comment object with the user ID and comment text
         const comment = { user: userId, text };
 
+        // Push the new comment into the comments array of the post
         post.comments.push(comment);
+        // Save the updated post to the database
         await post.save();
+        // Return the updated post as a response
         return res.status(200).json(post);
 
     } catch (error) {
         // Log the error to the console for debugging
         console.error("Error in commentOnPost controller: ", error);
+        // Return a 500 internal server error response
         return res.status(500).json({ error: "Internal server error" });
     }
 }
 
+// Controller function to handle liking and unliking a post
 export const likeUnlikePost = async (req, res) => {
     try {
-        const postId = req.params.id;
-        const userId = req.user._id;
+        const postId = req.params.id; // Extracting the post ID from the request parameters
+        const userId = req.user._id; // Extracting the user ID from the authenticated user
 
+        // Find the post by its ID
         const post = await Post.findById(postId);
+        // If the post is not found, return a 404 error
         if (!post) return res.status(404).json({ error: "Post not found" });
 
+        // Check if the user has already liked the post
         const userLikePost = post.likes.includes(userId);
         if (userLikePost) {
+            // If the user has liked the post, remove their like
             await Post.updateOne({ _id: postId }, { $pull: { likes: userId } });
             return res.status(200).json({ message: "Post unliked successfully" });
         } else {
+            // If the user hasn't liked the post, add their like
             await Post.updateOne({ _id: postId }, { $push: { likes: userId } });
 
-            //also send notification to the post creator or user
+            // Also send a notification to the post creator or user
             const notification = new Notification({
-                from: userId,
-                to: post.user,
-                type: "like",
+                from: userId, // The user who liked the post
+                to: post.user, // The user who created the post
+                type: "like", // The type of notification
             });
 
+            // Save the notification to the database
             await notification.save();
             return res.status(200).json({ message: "Post liked successfully" });
         }
     } catch (error) {
         // Log the error to the console for debugging
         console.error("Error in likeUnlikePost controller: ", error);
+        // Return a 500 internal server error response
         return res.status(500).json({ error: "Internal server error" });
     }
 }
+
+// Controller function to handle retrieving all posts
+export const getAllPosts = async (req, res) => {
+    try {
+        // Fetch all posts from the database and sort them in descending order based on the creation date
+        const posts = await Post.find({}).sort({ createdAt: -1 })
+        .populate({ path: "user", select: "-password" }) // Populate the user field, excluding the password
+        .populate({ path: "comments.user", select: "username fullName profileImg" }); 
+        // Populate the user field in comments with username, fullName, and profileImg
+
+        // If no posts are found, return an empty array with a 200 status
+        if (posts.length == 0) {
+            return res.status(200).json([]);
+        }
+
+        // Return the retrieved posts with a 200 status
+        return res.status(200).json(posts);
+    } catch (error) {
+        // Log the error to the console for debugging
+        console.error("Error in getAllPosts controller: ", error);
+        // Return a 500 internal server error response
+        return res.status(500).json({ error: "Internal server error" });
+    }
+}
+
