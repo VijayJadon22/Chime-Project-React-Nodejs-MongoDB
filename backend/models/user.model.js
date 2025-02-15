@@ -52,7 +52,14 @@ const userSchema = new mongoose.Schema({
     link: { // Field for the user's personal or website link
         type: String, // The type of data for this field is String
         default: "", // The default value is an empty string
-    }
+    },
+    likedPosts: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Post",
+            default: []
+        }
+    ]
 }, { timestamps: true }); // The timestamps option adds createdAt and updatedAt fields to the schema
 
 // Pre-save hook to hash the password before saving the user document
