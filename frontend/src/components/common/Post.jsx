@@ -1,28 +1,59 @@
-import { FaRegComment } from "react-icons/fa";
-import { BiRepost } from "react-icons/bi";
-import { FaRegHeart } from "react-icons/fa";
-import { FaRegBookmark } from "react-icons/fa6";
-import { FaTrash } from "react-icons/fa";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { FaRegComment } from "react-icons/fa"; // Import comment icon from react-icons
+import { BiRepost } from "react-icons/bi"; // Import repost icon from react-icons
+import { FaRegHeart } from "react-icons/fa"; // Import heart (like) icon from react-icons
+import { FaRegBookmark } from "react-icons/fa6"; // Import bookmark icon from react-icons
+import { FaTrash } from "react-icons/fa"; // Import trash (delete) icon from react-icons
+import { useState } from "react"; // Import useState hook from React
+import { Link } from "react-router-dom"; // Import Link component from react-router-dom for navigation
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"; // Import useMutation and useQuery hooks from @tanstack/react-query
+import toast from "react-hot-toast"; // Import toast for displaying notifications
+import LoadingSpinner from "./LoadingSpinner"; // Import LoadingSpinner component
 
 const Post = ({ post }) => {
-  const [comment, setComment] = useState("");
-  const postOwner = post.user;
-  const isLiked = false;
+  const [comment, setComment] = useState(""); // State for storing the comment input
+  const { data: authUser } = useQuery({ queryKey: ["authUser"] }); // Query to get authenticated user data
 
-  const isMyPost = true;
+  const queryClient = useQueryClient(); // Initialize query client
 
-  const formattedDate = "1h";
+  // Define the mutation for deleting a post
+  const { mutate: deletePostMutation, isPending } = useMutation({
+    // Function to execute when the mutation is called
+    mutationFn: async () => {
+      try {
+        const res = await fetch(`/api/posts/${post._id}`, {
+          method: "DELETE",
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Something went wrong");
+        return data;
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
+    onSuccess: () => {
+      toast.success("Post deleted successfully");
+      // Invalidate the query and fetch posts again
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
 
-  const isCommenting = false;
+  const postOwner = post.user; // Owner of the post
+  const isLiked = false; // Placeholder for like status (needs actual logic)
+  const isMyPost = authUser._id === post.user._id; // Check if the post belongs to the authenticated user
+  const formattedDate = "1h"; // Placeholder for the formatted date (needs actual logic)
+  const isCommenting = false; // Placeholder for commenting status (needs actual logic)
 
-  const handleDeletePost = () => {};
-
-  const handlePostComment = (e) => {
-    e.preventDefault();
+  // Handle delete post
+  const handleDeletePost = () => {
+    deletePostMutation(); // Call the mutation to delete the post
   };
 
+  // Handle post comment
+  const handlePostComment = (e) => {
+    e.preventDefault(); // Prevent default form submission
+  };
+
+  // Handle like post (needs actual logic)
   const handleLikePost = () => {};
 
   return (
@@ -50,10 +81,13 @@ const Post = ({ post }) => {
             </span>
             {isMyPost && (
               <span className="flex justify-end flex-1">
-                <FaTrash
-                  className="cursor-pointer hover:text-red-500"
-                  onClick={handleDeletePost}
-                />
+                {!isPending && (
+                  <FaTrash
+                    className="cursor-pointer hover:text-red-500"
+                    onClick={handleDeletePost}
+                  />
+                )}
+                {isPending && <LoadingSpinner size="sm" />}
               </span>
             )}
           </div>
@@ -77,7 +111,7 @@ const Post = ({ post }) => {
                     .showModal()
                 }
               >
-                <FaRegComment className="w-4 h-4  text-slate-500 group-hover:text-sky-400" />
+                <FaRegComment className="w-4 h-4 text-slate-500 group-hover:text-sky-400" />
                 <span className="text-sm text-slate-500 group-hover:text-sky-400">
                   {post.comments.length}
                 </span>
@@ -126,7 +160,7 @@ const Post = ({ post }) => {
                     onSubmit={handlePostComment}
                   >
                     <textarea
-                      className="textarea w-full p-1 rounded text-md resize-none border focus:outline-none  border-gray-800"
+                      className="textarea w-full p-1 rounded text-md resize-none border focus:outline-none border-gray-800"
                       placeholder="Add a comment..."
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
@@ -145,7 +179,7 @@ const Post = ({ post }) => {
                 </form>
               </dialog>
               <div className="flex gap-1 items-center group cursor-pointer">
-                <BiRepost className="w-6 h-6  text-slate-500 group-hover:text-green-500" />
+                <BiRepost className="w-6 h-6 text-slate-500 group-hover:text-green-500" />
                 <span className="text-sm text-slate-500 group-hover:text-green-500">
                   0
                 </span>
@@ -158,7 +192,7 @@ const Post = ({ post }) => {
                   <FaRegHeart className="w-4 h-4 cursor-pointer text-slate-500 group-hover:text-pink-500" />
                 )}
                 {isLiked && (
-                  <FaRegHeart className="w-4 h-4 cursor-pointer text-pink-500 " />
+                  <FaRegHeart className="w-4 h-4 cursor-pointer text-pink-500" />
                 )}
 
                 <span
@@ -179,4 +213,5 @@ const Post = ({ post }) => {
     </>
   );
 };
-export default Post;
+
+export default Post; // Export the Post component
