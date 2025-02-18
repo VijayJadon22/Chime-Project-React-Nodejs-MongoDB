@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState } from "react"; // Import useState hook from React
 
-import Posts from "../../components/common/Posts";
-import CreatePost from "./CreatePost";
+import Posts from "../../components/common/Posts"; // Import Posts component
+import CreatePost from "./CreatePost"; // Import CreatePost component
 
 const HomePage = () => {
-  const [feedType, setFeedType] = useState("forYou");
+  const [feedType, setFeedType] = useState("forYou"); // State for feed type, default is "forYou"
 
   return (
     <>
@@ -15,11 +15,11 @@ const HomePage = () => {
             className={
               "flex justify-center flex-1 p-3 hover:bg-secondary transition duration-300 cursor-pointer relative"
             }
-            onClick={() => setFeedType("forYou")}
+            onClick={() => setFeedType("explore")}
           >
             Explore
-            {feedType === "forYou" && (
-              <div className="absolute bottom-0 w-10  h-1 rounded-full bg-primary"></div>
+            {feedType === "explore" && (
+              <div className="absolute bottom-0 w-10 h-1 rounded-full bg-primary"></div>
             )}
           </div>
           <div
@@ -28,7 +28,7 @@ const HomePage = () => {
           >
             Following
             {feedType === "following" && (
-              <div className="absolute bottom-0 w-10  h-1 rounded-full bg-primary"></div>
+              <div className="absolute bottom-0 w-10 h-1 rounded-full bg-primary"></div>
             )}
           </div>
         </div>
@@ -37,9 +37,10 @@ const HomePage = () => {
         <CreatePost />
 
         {/* POSTS */}
-        <Posts />
+        <Posts feedType={feedType} />
       </div>
     </>
   );
 };
-export default HomePage;
+
+export default HomePage; // Export the HomePage component
