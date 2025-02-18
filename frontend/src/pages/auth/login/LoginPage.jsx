@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"; // Import Link component from react-rou
 
 import { MdOutlineMail } from "react-icons/md"; // Import email icon from react-icons
 import { MdPassword } from "react-icons/md"; // Import password icon from react-icons
-import { useMutation } from "@tanstack/react-query"; // Import useMutation hook from @tanstack/react-query
+import { useMutation, useQueryClient } from "@tanstack/react-query"; // Import useMutation hook from @tanstack/react-query
 import toast from "react-hot-toast"; // Import toast for displaying notifications
 
 const LoginPage = () => {
@@ -12,6 +12,8 @@ const LoginPage = () => {
     username: "",
     password: "",
   });
+
+  const queryClient = useQueryClient(); // Initialize query client
 
   // Define the mutation for logging in
   const {
@@ -41,7 +43,7 @@ const LoginPage = () => {
     },
     // Success callback
     onSuccess: () => {
-      toast.success("Login successful");
+      queryClient.invalidateQueries({ queryKey: ["authUser"] }); // As soon as user gets logged in, this will invalidate the authUser query and it will rerun the authUser. As it will get the user this time since the user logged in, the login page will be redirected to the homepage due to conditional rendering on authUser.
     },
     // Error callback
     onError: () => {

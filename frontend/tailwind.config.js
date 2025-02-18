@@ -10,7 +10,7 @@ export default {
 
   daisyui: {
     themes: [
-      "light", "acid", {
+      "light", "acid", "retro", "dim", {
         dracula: {
           ...daisyUIThemes["dracula"],
           primary: "rgb(29, 155, 240)",
