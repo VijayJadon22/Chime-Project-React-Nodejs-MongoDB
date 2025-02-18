@@ -1,16 +1,17 @@
-import { Link } from "react-router-dom";
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { Link } from "react-router-dom"; // Import Link component from react-router-dom for navigation
+import { useState } from "react"; // Import useState hook from React
+import { useMutation } from "@tanstack/react-query"; // Import useMutation hook from @tanstack/react-query
 
-// import XSvg from "../../../components/svgs/X";
+// import XSvg from "../../../components/svgs/X"; // Commented out import for XSvg, as it's not used
 
-import { MdOutlineMail } from "react-icons/md";
-import { FaUser } from "react-icons/fa";
-import { MdPassword } from "react-icons/md";
-import { MdDriveFileRenameOutline } from "react-icons/md";
-import toast from "react-hot-toast";
+import { MdOutlineMail } from "react-icons/md"; // Import email icon from react-icons
+import { FaUser } from "react-icons/fa"; // Import user icon from react-icons
+import { MdPassword } from "react-icons/md"; // Import password icon from react-icons
+import { MdDriveFileRenameOutline } from "react-icons/md"; // Import full name icon from react-icons
+import toast from "react-hot-toast"; // Import toast for displaying notifications
 
 const SignUpPage = () => {
+  // State for form data
   const [formData, setFormData] = useState({
     email: "",
     username: "",
@@ -18,7 +19,14 @@ const SignUpPage = () => {
     password: "",
   });
 
-  const { mutate, isError, isPending, error } = useMutation({
+  // Define the mutation for signing up
+  const {
+    mutate: signupMutation,
+    isError,
+    isPending,
+    error,
+  } = useMutation({
+    // Function to execute when the mutation is called
     mutationFn: async ({ email, username, fullName, password }) => {
       try {
         const res = await fetch("/api/auth/signup", {
@@ -38,26 +46,31 @@ const SignUpPage = () => {
         throw error;
       }
     },
+    // Success callback
     onSuccess: () => {
       toast.success("Account created successfully");
     },
+    // Error callback
     onError: () => {
       toast.error(error.message);
     },
   });
 
+  // Handle form submission
   const handleSubmit = (e) => {
-    e.preventDefault();
-    mutate(formData);
+    e.preventDefault(); // Prevent default form submission
+    signupMutation(formData); // Call the mutation with form data
   };
 
+  // Handle input change
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({ ...formData, [e.target.name]: e.target.value }); // Update form data state
   };
 
   return (
     <div className="max-w-screen-xl mx-auto flex h-screen px-10">
-      <div className="flex-1 hidden lg:flex items-center  justify-center">
+      {/* Left side image, visible only on large screens */}
+      <div className="flex-1 hidden lg:flex items-center justify-center">
         <img
           className="lg:w-2/3 fill-white"
           src="https://tecdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/lotus.webp"
@@ -65,10 +78,12 @@ const SignUpPage = () => {
         />
       </div>
       <div className="flex-1 flex flex-col justify-center items-center">
+        {/* Sign up form */}
         <form
-          className="lg:w-2/3  mx-auto md:mx-20 flex gap-4 flex-col"
+          className="lg:w-2/3 mx-auto md:mx-20 flex gap-4 flex-col"
           onSubmit={handleSubmit}
         >
+          {/* Logo for mobile view */}
           <img
             className="w-24 lg:hidden fill-white"
             src="https://tecdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/lotus.webp"
@@ -91,7 +106,7 @@ const SignUpPage = () => {
               <FaUser />
               <input
                 type="text"
-                className="grow "
+                className="grow"
                 placeholder="Username"
                 name="username"
                 onChange={handleInputChange}
@@ -138,4 +153,4 @@ const SignUpPage = () => {
     </div>
   );
 };
-export default SignUpPage;
+export default SignUpPage; // Export the SignUpPage component
