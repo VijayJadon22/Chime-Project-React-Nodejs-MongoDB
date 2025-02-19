@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom"; // Importing the Link component from react-router-dom for navigation
-import RightPanelSkeleton from "../skeletons/RightPanelSkeleton"; // Importing the RightPanelSkeleton component for loading state
 import { useQuery } from "@tanstack/react-query"; // Importing the useQuery hook from react-query for data fetching
+
+import useFollow from "../../hooks/useFollow"; // Importing the custom useFollow hook
+
+import RightPanelSkeleton from "../skeletons/RightPanelSkeleton"; // Importing the RightPanelSkeleton component for loading state
+import LoadingSpinner from "./LoadingSpinner"; // Importing the LoadingSpinner component for loading indication
 
 const RightPanel = () => {
   // Using the useQuery hook to fetch suggested users data
@@ -20,7 +24,9 @@ const RightPanel = () => {
     },
   });
 
-  // Returning an empty div if there are no suggested users
+  const { followMutation, isPending } = useFollow(); // Using the custom useFollow hook for follow mutation
+
+  // Returning an empty div if there are no suggested users, so that if current user is following all the users or there are no suggested users the home page that is the posts page should not exceed its width
   if (suggestedUsers?.length === 0) return <div className="md:w-64 w-0"></div>;
 
   return (
@@ -66,9 +72,13 @@ const RightPanel = () => {
                 <div>
                   <button
                     className="btn bg-fuchsia-200 text-black hover:bg-white hover:opacity-90 rounded-full btn-sm"
-                    onClick={(e) => e.preventDefault()} // Preventing the button's default action
+                    onClick={(e) => {
+                      e.preventDefault();
+                      followMutation(user._id); // Triggering the follow mutation when the button is clicked
+                    }} // Preventing the button's default action
                   >
-                    Follow
+                    {isPending ? <LoadingSpinner size="sm" /> : "Follow"}{" "}
+                    {/*Displaying a loading spinner while the mutation is pending*/}
                   </button>
                 </div>
               </Link>
