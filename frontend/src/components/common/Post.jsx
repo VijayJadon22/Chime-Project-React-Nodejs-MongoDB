@@ -41,9 +41,9 @@ const Post = ({ post }) => {
   // Define the mutation for liking a post
   const { mutate: likePostMutation, isPending: isLiking } = useMutation({
     // Function to execute when the mutation is called
-    mutationFn: async (postId) => {
+    mutationFn: async () => {
       try {
-        const res = await fetch(`/api/posts/like/${postId}`, {
+        const res = await fetch(`/api/posts/like/${post._id}`, {
           method: "POST",
         });
         const data = await res.json();
@@ -72,11 +72,38 @@ const Post = ({ post }) => {
     },
   });
 
+  const { mutate: commentPostMutation, isPending: isCommenting } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch(`/api/posts/comment/${post._id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: comment }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Something went wrong");
+        return data;
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
+    onSuccess: () => {
+      toast.success("Comment posted successfully");
+      setComment("");
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   const postOwner = post.user; // Owner of the post
   const isLiked = post.likes.includes(authUser._id); // Check if the authenticated user has liked the post
   const isMyPost = authUser._id === post.user._id; // Check if the post belongs to the authenticated user
   const formattedDate = "1h"; // Placeholder for the formatted date (needs actual logic)
-  const isCommenting = false; // Placeholder for commenting status (needs actual logic)
 
   // Handle delete post
   const handleDeletePost = () => {
@@ -85,13 +112,15 @@ const Post = ({ post }) => {
 
   // Handle post comment
   const handlePostComment = (e) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault(); // Prevent default form submission as the comment section is a form
+    if (isCommenting) return;
+    commentPostMutation();
   };
 
   // Handle like post
   const handleLikePost = () => {
     if (isLiking) return;
-    likePostMutation(post._id); // Call the mutation to like the post
+    likePostMutation(); // Call the mutation to like the post
   };
 
   return (
