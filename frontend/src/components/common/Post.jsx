@@ -8,6 +8,7 @@ import { Link } from "react-router-dom"; // Import Link component from react-rou
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"; // Import useMutation and useQuery hooks from @tanstack/react-query
 import toast from "react-hot-toast"; // Import toast for displaying notifications
 import LoadingSpinner from "./LoadingSpinner"; // Import LoadingSpinner component
+import { formatPostDate } from "../../utils/date";
 
 // Post component definition
 const Post = ({ post }) => {
@@ -15,6 +16,11 @@ const Post = ({ post }) => {
   const { data: authUser } = useQuery({ queryKey: ["authUser"] }); // Query to get authenticated user data
 
   const queryClient = useQueryClient(); // Initialize query client
+
+  const postOwner = post.user; // Owner of the post
+  const isLiked = post.likes.includes(authUser._id); // Check if the authenticated user has liked the post
+  const isMyPost = authUser._id === post.user._id; // Check if the post belongs to the authenticated user
+  const formattedDate = formatPostDate(post.createdAt); // Format the post creation date using the formatPostDate function
 
   // Define the mutation for deleting a post
   const { mutate: deletePostMutation, isPending: isDeleting } = useMutation({
@@ -73,8 +79,10 @@ const Post = ({ post }) => {
   });
 
   const { mutate: commentPostMutation, isPending: isCommenting } = useMutation({
+    // Define the mutation function for posting a comment
     mutationFn: async () => {
       try {
+        // Send a POST request to the server to add a new comment
         const res = await fetch(`/api/posts/comment/${post._id}`, {
           method: "POST",
           headers: {
@@ -83,27 +91,31 @@ const Post = ({ post }) => {
           body: JSON.stringify({ text: comment }),
         });
 
+        // Parse the response JSON
         const data = await res.json();
+        // Throw an error if the response is not OK
         if (!res.ok) throw new Error(data.error || "Something went wrong");
         return data;
       } catch (error) {
+        // Catch and rethrow any error that occurs during the request
         throw new Error(error);
       }
     },
+    // Define the onSuccess callback function
     onSuccess: () => {
+      // Display a success toast message
       toast.success("Comment posted successfully");
+      // Clear the comment input
       setComment("");
+      // Invalidate the queries to refetch the updated data
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
+    // Define the onError callback function
     onError: (error) => {
+      // Display an error toast message
       toast.error(error.message);
     },
   });
-
-  const postOwner = post.user; // Owner of the post
-  const isLiked = post.likes.includes(authUser._id); // Check if the authenticated user has liked the post
-  const isMyPost = authUser._id === post.user._id; // Check if the post belongs to the authenticated user
-  const formattedDate = "1h"; // Placeholder for the formatted date (needs actual logic)
 
   // Handle delete post
   const handleDeletePost = () => {
