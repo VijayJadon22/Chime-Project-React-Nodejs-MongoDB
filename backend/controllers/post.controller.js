@@ -142,7 +142,11 @@ export const likeUnlikePost = async (req, res) => {
             // If the user has liked the post, remove their like
             await Post.updateOne({ _id: postId }, { $pull: { likes: userId } });
             await User.updateOne({ _id: userId }, { $pull: { likedPosts: postId } });
-            return res.status(200).json({ message: "Post unliked successfully" });
+
+            // As we just removed the current userId from the post likes array but we are not taking likes array from it because the await Post.updateOne() operation doesn't return the updated post document. In other words, the post variable still holds the old state of the likes array that includes the user ID we just removed. 
+            // Filtering the post.likes array ensures we return the correct, updated state of the likes array without having to fetch the post again from the database.
+            const updatedLikes = post.likes.filter((id) => id.toString() !== userId.toString());
+            return res.status(200).json(updatedLikes);
         } else {
             // If the user hasn't liked the post, add their like
             await Post.updateOne({ _id: postId }, { $push: { likes: userId } });
@@ -157,7 +161,10 @@ export const likeUnlikePost = async (req, res) => {
 
             // Save the notification to the database
             await notification.save();
-            return res.status(200).json({ message: "Post liked successfully" });
+
+            // Re-fetch the updated post to get the updated likes array containing userId
+            const updatedPost = await Post.findById(postId);
+            return res.status(200).json(updatedPost.likes);
         }
     } catch (error) {
         // Log the error to the console for debugging
