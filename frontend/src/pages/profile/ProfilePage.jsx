@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
+// Importing components and utility functions
 import Posts from "../../components/common/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "./EditProfileModal";
 
+// Dummy data for posts
 import { POSTS } from "../../utils/db/dummy";
 
+// Importing icons from various libraries
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
@@ -18,19 +21,25 @@ import LoadingSpinner from "../../components/common/LoadingSpinner";
 import useUpdateUserProfile from "../../hooks/useUpdateUserProfile";
 
 const ProfilePage = () => {
+  // State variables for cover image, profile image, and feed type
   const [coverImg, setCoverImg] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
   const [feedType, setFeedType] = useState("posts");
 
+  // Getting the username parameter from the URL
   const { username } = useParams();
 
+  // Fetching authenticated user data using react-query
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
+  // Hook for follow/unfollow functionality
   const { followMutation, isPending } = useFollow();
 
+  // References to input fields for cover and profile images
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
 
+  // Fetching user profile data using react-query
   const {
     data: user,
     isLoading,
@@ -50,17 +59,21 @@ const ProfilePage = () => {
     },
   });
 
+  // Hook for updating user profile data
   const { updateProfileMutation, isUpdatingProfile } = useUpdateUserProfile();
 
+  // Effect to refetch user profile data when the username changes
   useEffect(() => {
     refetch();
   }, [username, refetch]);
 
+  // Function to handle image changes for cover and profile images
   const handleImgChange = (e, state) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
+        // Update the image state based on the input field type (cover or profile)
         state === "coverImg" && setCoverImg(reader.result);
         state === "profileImg" && setProfileImg(reader.result);
       };
@@ -68,10 +81,13 @@ const ProfilePage = () => {
     }
   };
 
+  // Check if the current profile belongs to the authenticated user
   const isMyProfile = authUser?._id === user?._id;
 
+  // Format the user's membership date
   const memberSinceDate = formatMemberSinceDate(user?.createdAt);
 
+  // Check if the authenticated user is following the current user profile
   const amIFollowing = authUser?.following.includes(user?._id);
 
   return (
