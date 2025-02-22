@@ -11,19 +11,24 @@ import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { formatMemberSinceDate } from "../../utils/date";
+import useFollow from "../../hooks/useFollow";
+import toast from "react-hot-toast";
 
 const ProfilePage = () => {
   const [coverImg, setCoverImg] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
   const [feedType, setFeedType] = useState("posts");
+
   const { username } = useParams();
+
+  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+
+  const { followMutation, isPending } = useFollow();
 
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
-
-  // const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
   const {
     data: user,
@@ -44,11 +49,32 @@ const ProfilePage = () => {
     },
   });
 
+  const { mutate: updateProfile, isPending: isUpdatingProfile } = useMutation({
+    mutationFn: async () => {
+      try {
+        const res = await fetch("/api/users/update", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ coverImg, profileImg }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Something went wrong");
+        return data;
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
+    onSuccess: () => {
+      toast.success("Profile updated successfully");
+    },
+  });
+
   useEffect(() => {
     refetch();
   }, [username, refetch]);
-  // const isMyProfile = authUser._id.toString() === user._id.toString();
-  const isMyProfile = true;
 
   const handleImgChange = (e, state) => {
     const file = e.target.files[0];
@@ -62,7 +88,11 @@ const ProfilePage = () => {
     }
   };
 
+  const isMyProfile = authUser?._id === user?._id;
+
   const memberSinceDate = formatMemberSinceDate(user?.createdAt);
+
+  const amIFollowing = authUser?.following.includes(user?._id);
 
   return (
     <>
@@ -142,9 +172,11 @@ const ProfilePage = () => {
                 {!isMyProfile && (
                   <button
                     className="btn btn-outline rounded-full btn-sm"
-                    onClick={() => alert("Followed successfully")}
+                    onClick={() => followMutation(user?._id)}
                   >
-                    Follow
+                    {isPending && "Loading..."}
+                    {!isPending && amIFollowing && "Unfollow"}
+                    {!isPending && !amIFollowing && "Follow"}
                   </button>
                 )}
                 {(coverImg || profileImg) && (
