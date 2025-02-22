@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"; // Import Link component from react-router-dom for navigation
 import { useState } from "react"; // Import useState hook from React
-import { useMutation } from "@tanstack/react-query"; // Import useMutation hook from @tanstack/react-query
+import { useMutation, useQueryClient } from "@tanstack/react-query"; // Import useMutation hook from @tanstack/react-query
 
 // import XSvg from "../../../components/svgs/X"; // Commented out import for XSvg, as it's not used
 
@@ -19,6 +19,7 @@ const SignUpPage = () => {
     password: "",
   });
 
+  const queryClient = useQueryClient();
   // Define the mutation for signing up
   const {
     mutate: signupMutation,
@@ -49,6 +50,7 @@ const SignUpPage = () => {
     // Success callback
     onSuccess: () => {
       toast.success("Account created successfully");
+      queryClient.invalidateQueries({ queryKey: ['authUser'] });
     },
     // Error callback
     onError: () => {
