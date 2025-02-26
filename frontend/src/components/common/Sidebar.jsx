@@ -52,9 +52,9 @@ const Sidebar = () => {
         {/* Home link */}
         <Link to="/" className="flex justify-center md:justify-start">
           <img
-            className="px-2 w-28 h-20 rounded-full "
+            className="px-2 w-28 h-20 rounded-full"
             src="https://tecdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/lotus.webp"
-            alt=""
+            alt="website-logo"
           />
         </Link>
         <ul className="flex flex-col gap-3 mt-4">
